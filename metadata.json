@@ -1,0 +1,6 @@
+{
+  "name": "Phonogram Flashcards",
+  "description": "A flashcard app for mastering phonograms with lesson selector, practice session mode, performance report, and Firebase Auth for cloud syncing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

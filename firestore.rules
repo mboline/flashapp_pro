@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net - Default Deny Catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reuseable global authentication and identification helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isEmailVerified() {
+      // Mandates that verified users are writing to the database
+      return request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Card status validation logic
+    function isValidCardStatus(data) {
+      return data.keys().hasAll(['status', 'updatedAt'])
+        && data.keys().size() == 2
+        && data.status is string
+        && (data.status == 'Not Known' || data.status == 'Needs Work' || data.status == 'Known' || data.status == 'Remove')
+        && data.updatedAt is timestamp;
+    }
+
+    // Practice session validation logic
+    function isValidPracticeSession(data) {
+      return data.keys().hasAll(['startTime', 'endTime', 'cardCount', 'results', 'score'])
+        && data.keys().size() == 5
+        && data.startTime is timestamp
+        && data.endTime is timestamp
+        && data.cardCount is int
+        && data.cardCount >= 0
+        && data.results is map
+        && data.score is number
+        && data.score >= 0.0
+        && data.score <= 100.0;
+    }
+
+    // Match blocks for secure user-owned subcollections
+    match /users/{userId} {
+      
+      // Allow read/write for basic user node
+      allow read, write: if isSignedIn() && isOwner(userId);
+
+      // Card statuses
+      match /cards/{cardId} {
+        allow read, list: if isSignedIn() && isOwner(userId);
+        
+        allow create: if isSignedIn() 
+          && isOwner(userId) 
+          && isEmailVerified() 
+          && isValidId(cardId) 
+          && isValidCardStatus(incoming())
+          && incoming().updatedAt == request.time;
+          
+        allow update: if isSignedIn() 
+          && isOwner(userId) 
+          && isEmailVerified() 
+          && isValidId(cardId) 
+          && isValidCardStatus(incoming())
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']);
+          
+        allow delete: if isSignedIn() 
+          && isOwner(userId) 
+          && isEmailVerified()
+          && isValidId(cardId);
+      }
+
+      // Completed practice sessions (performance logs)
+      match /sessions/{sessionId} {
+        allow read, list: if isSignedIn() && isOwner(userId);
+        
+        allow create: if isSignedIn() 
+          && isOwner(userId) 
+          && isEmailVerified() 
+          && isValidId(sessionId) 
+          && isValidPracticeSession(incoming())
+          && (incoming().endTime == request.time || incoming().endTime is timestamp);
+          
+        // Sessions are historical logs; they cannot be updated
+        allow update: if false;
+        
+        allow delete: if isSignedIn() 
+          && isOwner(userId) 
+          && isEmailVerified()
+          && isValidId(sessionId);
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "UserCardStatus": {
+      "title": "User Card Status",
+      "description": "Tracks the review status of a specific phonogram for a user.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "Not Known",
+            "Needs Work",
+            "Known",
+            "Remove"
+          ],
+          "description": "The current status of the phonogram card."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the card status was last updated."
+        }
+      },
+      "required": [
+        "status",
+        "updatedAt"
+      ]
+    },
+    "PracticeSession": {
+      "title": "Practice Session",
+      "description": "Records the results of a practice session of multiple cards.",
+      "type": "object",
+      "properties": {
+        "startTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the practice session started."
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the practice session was completed."
+        },
+        "cardCount": {
+          "type": "integer",
+          "description": "Number of cards practiced in this session."
+        },
+        "results": {
+          "type": "object",
+          "description": "Map representing card IDs and their final assigned statuses."
+        },
+        "score": {
+          "type": "number",
+          "description": "Fraction or percentage representing known vs total cards in this session."
+        }
+      },
+      "required": [
+        "startTime",
+        "endTime",
+        "cardCount",
+        "results",
+        "score"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/cards/{cardId}": {
+      "schema": "UserCardStatus",
+      "description": "Path to a user's status for a particular phonogram card."
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "PracticeSession",
+      "description": "Path to a user's practice session record."
+    }
+  }
+}
