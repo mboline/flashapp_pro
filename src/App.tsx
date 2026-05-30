@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
 import { collection, doc, getDocs, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
@@ -329,124 +329,159 @@ export default function App() {
   const sessionActiveCards = allPhonograms.filter((p) => selectedCardIds.has(p.id));
   const randomizedSessionActiveCards = randomize ? [...sessionActiveCards].sort(() => Math.random() - 0.5) : sessionActiveCards;
 
-  return (
-    <div className="min-h-screen bg-slate-50/50 pb-16 font-sans antialiased text-slate-600">
-      
-      {/* 1. Header Hero Banner Backdrop */}
-      <header className="relative bg-gradient-to-r from-indigo-950 to-indigo-900 border-b border-indigo-950 overflow-hidden py-10">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-white/10 rounded-2xl text-white outline-indigo-200">
-              <GraduationCap className="h-8 w-8 text-indigo-300" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-extrabold uppercase bg-indigo-50/10 text-indigo-200 px-2 py-0.5 rounded-full tracking-wider">
-                  Est. Phonogram University
-                </span>
-                {syncingData && (
-                  <span className="flex items-center gap-1 text-[10px] bg-sky-500/10 text-sky-300 font-semibold px-2 py-0.5 rounded-full border border-sky-400/20">
-                    <Clock className="h-2.5 w-2.5 animate-spin" /> Fetching Firestore...
-                  </span>
-                )}
-              </div>
-              <h1 className="font-display font-extrabold text-white text-3xl sm:text-4xl tracking-tight mt-1">
-                Phonogram Flashcards
-              </h1>
-              <span className="text-xs text-indigo-200 block mt-1 py-0.5 font-medium underline">
-                Brought to you by Phonogram University
-              </span>
-            </div>
-          </div>
+  // Total visible/active phonograms (not removed)
+  const activePhonograms = useMemo(() => {
+    return allPhonograms.filter((p) => cardStatuses[p.id] !== 'Remove');
+  }, [cardStatuses]);
 
-          {/* User Sign-In Account Card Section */}
-          <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-center justify-between gap-4 md:w-80 shadow-inner">
+  const isAllSelected = activePhonograms.length > 0 && selectedCardIds.size === activePhonograms.length;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedCardIds(new Set(activePhonograms.map((p) => p.id)));
+    } else {
+      setSelectedCardIds(new Set());
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white pb-16 font-sans antialiased text-slate-800">
+      
+      {/* 1. Sleek, unobtrusive Top Student Sync Bar */}
+      <div className="bg-slate-50 border-b border-slate-200/80 py-2 px-4 sm:px-6 lg:px-8 text-xs">
+        <div className="flex items-center justify-between font-medium text-slate-500 w-full">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="tracking-tight">Phonogram Student Portal</span>
+            {syncingData && <span className="text-[10px] text-indigo-500 font-mono animate-pulse ml-2">(Syncing with Firestore...)</span>}
+          </div>
+          <div>
             {authLoading ? (
-              <div className="flex justify-center items-center w-full py-1">
-                <span className="text-xs text-indigo-200 font-mono">Verifying student account...</span>
-              </div>
+              <span className="text-slate-400">Verifying secure student access...</span>
             ) : user ? (
-              <div className="flex items-center justify-between w-full">
-                <div className="space-y-0.5 max-w-44 overflow-hidden">
-                  <span className="text-[10px] font-mono text-indigo-300 font-bold block uppercase tracking-wide">
-                    Sync Enabled ✔
-                  </span>
-                  <span className="text-white font-bold text-xs block truncate">
-                    {user.displayName || 'Spelling Student'}
-                  </span>
-                  <span className="text-indigo-200 text-[10px] block truncate font-mono">
-                    {user.email}
-                  </span>
-                </div>
+              <div className="flex items-center gap-3">
+                <span className="text-slate-700 font-semibold">{user.displayName || 'Spelling Student'} ({user.email})</span>
+                <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Sync Active</span>
                 <button
                   onClick={handleSignOut}
-                  id="btn-sign-out"
-                  className="p-2.5 bg-white/10 hover:bg-white/20 hover:text-rose-300 text-white rounded-xl transition duration-150"
-                  title="Sign out / Close sync"
+                  id="btn-top-sign-out"
+                  className="text-rose-600 hover:text-rose-800 font-semibold underline cursor-pointer"
                 >
-                  <LogOut className="h-4 w-4" />
+                  Disconnect
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col w-full gap-2 items-start justify-center">
-                <span className="text-[10px] font-mono text-indigo-200/80 leading-relaxed block">
-                  Sign in with Google to enable real-time cloud sync across your devices!
-                </span>
-                <button
-                  onClick={handleSignIn}
-                  id="btn-sign-in"
-                  className="w-full flex items-center justify-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white border-none rounded-xl text-xs font-bold transition-all shadow-sm"
-                >
-                  <LogIn className="h-3 w-3" /> Connect Account
-                </button>
-              </div>
+              <button
+                onClick={handleSignIn}
+                id="btn-top-sign-in"
+                className="text-indigo-650 hover:text-indigo-850 font-bold underline cursor-pointer"
+              >
+                Sign in with Google to sync cards
+              </button>
             )}
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* 2. Primary Navigation Mode Bar (Only visible when not playing review) */}
+      {/* 2. Full-bleed Brand Panoramic Education Banner */}
       {!isPlaying && (
-        <section className="bg-white border-b border-slate-100 shadow-xs sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-2 py-3 overflow-x-auto">
-              
+        <div className="w-full overflow-hidden select-none relative bg-slate-100 border-b border-slate-200">
+          <img
+            src="https://phonogramuniversity.com/wp-content/uploads/2023/03/Banner1.webp"
+            alt="Phonogram University Banner"
+            className="w-full h-auto max-h-[150px] sm:max-h-[180px] md:max-h-[220px] object-cover"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      )}
+
+      {/* 3. Streamlined Clean Header Container */}
+      {!isPlaying && (
+        <header className="bg-white border-b border-slate-100 py-6 px-4 sm:px-6 lg:px-8">
+          <div className="w-full">
+            <h1 className="font-sans font-bold text-[#0F172A] text-2xl sm:text-3xl tracking-tight">
+              Phonogram Flashcards
+            </h1>
+            <span className="text-xs text-slate-500 block mt-0.5">
+              Brought to you by <a href="https://www.phonogramuniversity.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline">Phonogram University</a>
+            </span>
+
+            {/* Quick View Navigation Tabs */}
+            <div className="flex gap-4 mt-4 border-b border-slate-100 pb-1 text-sm">
               <button
                 onClick={() => setActiveTab('lessons')}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  activeTab === 'lessons'
-                    ? 'bg-indigo-900 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                className={`font-semibold pb-1.5 border-b-2 transition ${
+                  activeTab === 'lessons' ? 'text-indigo-900 border-indigo-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'
                 }`}
-                id="tab-lessons-selector"
+                id="tab-selector-grid"
               >
-                <BookOpen className="h-4 w-4" />
-                Card selector grid
+                Card Selector Grid
               </button>
-
               <button
                 onClick={() => setActiveTab('reports')}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition ${
-                  activeTab === 'reports'
-                    ? 'bg-indigo-900 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                className={`font-semibold pb-1.5 border-b-2 transition ${
+                  activeTab === 'reports' ? 'text-indigo-900 border-indigo-900 font-bold' : 'text-slate-400 border-transparent hover:text-slate-600'
                 }`}
-                id="tab-reports"
+                id="tab-selector-reports"
               >
-                <BarChart2 className="h-4 w-4" />
                 Performance Report Logs
               </button>
-
             </div>
+
+            {/* Branded Section configurations from screenshot when on grid page */}
+            {activeTab === 'lessons' && (
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center gap-6 flex-wrap text-sm">
+                  <button
+                    disabled={selectedCardIds.size === 0}
+                    onClick={() => setIsPlaying(true)}
+                    id="btn-start-session"
+                    className="px-6 py-2 bg-[#E2E8F0] hover:bg-[#CBD5E1] disabled:bg-[#E2E8F0]/80 text-[#334155] disabled:text-[#94A3B8] font-bold rounded-md transition cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm shadow-xs border border-transparent"
+                  >
+                    Start Session
+                  </button>
+                  
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-indigo-650 accent-indigo-650 cursor-pointer"
+                      id="checkbox-select-all"
+                    />
+                    <span>Select All</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={randomize}
+                      onChange={(e) => setRandomize(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-indigo-650 accent-indigo-650 cursor-pointer"
+                      id="checkbox-toggle-randomize"
+                    />
+                    <span>Randomize</span>
+                  </label>
+                </div>
+
+                <div>
+                  <button
+                    onClick={handleRestoreRemoved}
+                    className="text-[#2563EB] hover:text-[#1D4ED8] underline text-xs font-medium cursor-pointer transition"
+                    id="btn-restore-removed"
+                  >
+                    Restore removed phonograms
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        </section>
+        </header>
       )}
 
       {/* Warning/Notification Alert Bar */}
       {errorNotification && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 mt-4 animate-fade-in">
           <div className="bg-rose-50 border border-rose-100 p-3.5 rounded-xl text-rose-700 text-xs flex items-center gap-2 font-semibold">
             <ShieldAlert className="h-4 w-4 text-rose-600 shrink-0" />
             {errorNotification}
@@ -454,8 +489,8 @@ export default function App() {
         </div>
       )}
 
-      {/* 3. Navigation View Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      {/* 4. Navigation View Body */}
+      <main className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {isPlaying ? (
           /* ACTIVE Review sequence display */
           <ReviewSession

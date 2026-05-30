@@ -79,89 +79,16 @@ export default function LessonSelector({
 
   return (
     <div className="space-y-6">
-      {/* Control Panel Card */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm md:p-8 space-y-6 transition hover:shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="font-display text-lg font-semibold text-slate-800">
-              Session Configuration
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Select specific lessons or cards to review. Status tags shape your repetition weight.
-            </p>
-          </div>
-
-          <div className="flex items-center flex-wrap gap-3">
-            <label className="flex items-center gap-2.5 px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer transition select-none">
-              <input
-                type="checkbox"
-                checked={isAllSelected}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                className="w-4.5 h-4.5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 accent-indigo-650 cursor-pointer"
-                id="checkbox-select-all"
-              />
-              <span>Select All</span>
-            </label>
-
-            <button
-              onClick={() => setRandomize(!randomize)}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-medium transition ${
-                randomize
-                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-              }`}
-              id="btn-toggle-randomize"
-            >
-              <RefreshCw className={`h-4 w-4 ${randomize ? 'animate-spin' : ''}`} />
-              Randomize Order
-            </button>
-          </div>
-        </div>
-
-        {/* Start Button & Selected Stats */}
-        <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-indigo-100 text-indigo-700 rounded-xl">
-              <ClipboardList className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="text-sm font-medium text-slate-600 block">Selected Cards</span>
-              <span className="font-display font-bold text-xl text-indigo-900">
-                {selectedIds.size} <span className="text-sm font-normal text-slate-500">of {activePhonograms.length} active</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="flex gap-3 w-full sm:w-auto">
-            <button
-              onClick={onStartSession}
-              disabled={selectedIds.size === 0}
-              id="btn-start-session"
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-8 py-3.5 bg-indigo-900 text-white font-semibold rounded-xl hover:bg-indigo-950 transition shadow-sm hover:shadow disabled:opacity-50 disabled:pointer-events-none"
-            >
-              <Play className="h-4 w-4 fill-current" />
-              Start Practice Session
-            </button>
-          </div>
-        </div>
-
-        {/* Restore Removed Link */}
-        <div className="flex justify-start">
-          <button
-            onClick={onRestoreRemoved}
-            className="flex items-center gap-1.5 text-xs text-slate-500 font-medium underline hover:text-indigo-900 transition"
-            id="btn-restore-removed"
-          >
-            <Undo2 className="h-3 w-3" /> Restore removed (hidden) phonograms
-          </button>
-        </div>
-      </div>
-
       {/* Lesson Index Bento Grid */}
       <div>
-        <h3 className="font-display font-semibold text-slate-700 mb-4 px-1">
-          Available Lessons ({Object.keys(lessons).length})
-        </h3>
+        <div className="flex items-center justify-between mb-4 px-1">
+          <h3 className="font-display font-semibold text-slate-700 text-base">
+            Available Lessons ({Object.keys(lessons).length})
+          </h3>
+          <span className="text-xs text-slate-500 font-medium bg-slate-100 px-3 py-1 rounded-full">
+            {selectedIds.size} card{selectedIds.size !== 1 ? 's' : ''} selected
+          </span>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.keys(lessons)
