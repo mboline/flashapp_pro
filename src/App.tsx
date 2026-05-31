@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
-import { collection, doc, getDocs, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
 import { allPhonograms } from './phonogram_data';
 import { CardStatus, PracticeSession, UserCardStatus } from './types';
@@ -306,6 +306,65 @@ export default function App() {
     window.scrollTo({ top: 350, behavior: 'smooth' });
   };
 
+  // 7b. Clear all practice session history
+  const handleClearHistory = async () => {
+    if (!window.confirm('Are you sure you want to clear your entire practice log history? This cannot be undone.')) {
+      return;
+    }
+    const backupSessions = [...sessions];
+    setSessions([]);
+    if (user) {
+      setSyncingData(true);
+      setErrorNotification(null);
+      try {
+        const promises = backupSessions.map((sess) => {
+          const sessRef = doc(db, 'users', user.uid, 'sessions', sess.id);
+          return deleteDoc(sessRef).catch((err) => {
+            handleFirestoreError(err, OperationType.DELETE, `users/${user.uid}/sessions/${sess.id}`);
+          });
+        });
+        await Promise.all(promises);
+      } catch (e) {
+        console.error('Error clearing cloud practice logs:', e);
+        setErrorNotification('Failed to clear entire cloud history. Restoring visual logs.');
+        setSessions(backupSessions);
+      } finally {
+        setSyncingData(false);
+      }
+    } else {
+      localStorage.removeItem('phonogram_sessions');
+    }
+  };
+
+  // 7c. Delete individual practice session
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!window.confirm('Are you sure you want to delete this specific practice session log?')) {
+      return;
+    }
+    const backupSessions = [...sessions];
+    const nextSessions = sessions.filter((s) => s.id !== sessionId);
+    setSessions(nextSessions);
+
+    if (user) {
+      setSyncingData(true);
+      setErrorNotification(null);
+      try {
+        const sessRef = doc(db, 'users', user.uid, 'sessions', sessionId);
+        await deleteDoc(sessRef).catch((err) => {
+          handleFirestoreError(err, OperationType.DELETE, `users/${user.uid}/sessions/${sessionId}`);
+        });
+      } catch (e) {
+        console.error('Error deleting individual session in cloud:', e);
+        setErrorNotification('Failed to delete specific cloud log. Restoring list.');
+        setSessions(backupSessions);
+      } finally {
+        setSyncingData(false);
+      }
+    } else {
+      localStorage.setItem('phonogram_sessions', JSON.stringify(nextSessions));
+    }
+  };
+
   // 8. Auth commands
   const handleSignIn = async () => {
     try {
@@ -522,14 +581,8 @@ export default function App() {
                 sessions={sessions}
                 cardStatuses={cardStatuses}
                 onSelectWeakCards={handleSelectWeakCards}
-                onClearHistory={
-                  !user 
-                    ? () => {
-                        localStorage.removeItem('phonogram_sessions');
-                        setSessions([]);
-                      } 
-                    : undefined
-                }
+                onClearHistory={handleClearHistory}
+                onDeleteSession={handleDeleteSession}
                 isAuthenticated={!!user}
               />
             )}

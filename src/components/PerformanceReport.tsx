@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { PracticeSession, CardStatus } from '../types';
 import { allPhonograms } from '../phonogram_data';
-import { Calendar, BarChart2, Star, HelpCircle, AlertCircle, CheckCircle, Flame, EyeOff, CircleAlert, ChevronDown, ChevronUp, RefreshCw, Trophy } from 'lucide-react';
+import { Calendar, BarChart2, Star, HelpCircle, AlertCircle, CheckCircle, Flame, EyeOff, CircleAlert, ChevronDown, ChevronUp, RefreshCw, Trophy, Trash2 } from 'lucide-react';
 
 interface PerformanceReportProps {
   sessions: PracticeSession[];
   cardStatuses: Record<string, CardStatus>;
   onSelectWeakCards: (weakIds: string[]) => void;
   onClearHistory?: () => void;
+  onDeleteSession?: (sessionId: string) => void;
   isAuthenticated: boolean;
 }
 
@@ -16,6 +17,7 @@ export default function PerformanceReport({
   cardStatuses,
   onSelectWeakCards,
   onClearHistory,
+  onDeleteSession,
   isAuthenticated
 }: PerformanceReportProps) {
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
@@ -304,12 +306,25 @@ export default function PerformanceReport({
                         <span className="text-sm font-display font-extrabold text-slate-800 block">
                           Score: {sess.score}%
                         </span>
-                        <span className="text-[10px] text-slate-400 font-normal">accuracy</span>
+                        <span className="text-[10px] text-slate-400 font-normal mr-1">accuracy</span>
                       </div>
+                      {onDeleteSession && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteSession(sess.id);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                          title="Delete this practice session log"
+                          id={`btn-delete-session-${sess.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                       {isExpanded ? (
-                        <ChevronUp className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
+                        <ChevronUp className="h-4 w-4 text-slate-400 group-hover:text-slate-600 shrink-0" />
                       ) : (
-                        <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
+                        <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-slate-600 shrink-0" />
                       )}
                     </div>
                   </div>
