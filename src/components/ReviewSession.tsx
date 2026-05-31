@@ -73,7 +73,7 @@ export default function ReviewSession({
   }
 
   // Active status of current card
-  const currentStatus = sessionStatuses[currentCard.id] || cardStatuses[currentCard.id] || 'Needs Work';
+  const currentStatus = sessionStatuses[currentCard.id] || cardStatuses[currentCard.id] || 'Not Known';
 
   const handleSetStatus = (status: CardStatus) => {
     // Save locally to session state
@@ -105,7 +105,7 @@ export default function ReviewSession({
     const weightedIndices: number[] = [];
     for (let i = 0; i < cards.length; i++) {
       const cardId = cards[i].id;
-      const status = sessionStatuses[cardId] || cardStatuses[cardId] || 'Needs Work';
+      const status = sessionStatuses[cardId] || cardStatuses[cardId] || 'Not Known';
       
       let tickets = 3; // 'Needs Work' default fallback
       if (status === 'Not Known') tickets = 5;
@@ -274,7 +274,7 @@ export default function ReviewSession({
             id="btn-next-card"
             className="flex-1 flex items-center justify-center gap-2 py-4 bg-indigo-900 hover:bg-indigo-950 text-white rounded-2xl font-bold tracking-wide transition shadow-sm hover:shadow"
           >
-            Next Random card <ChevronRight className="h-4 w-4" />
+            Next <ChevronRight className="h-4 w-4" />
           </button>
         </div>
 

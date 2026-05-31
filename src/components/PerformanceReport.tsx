@@ -293,8 +293,8 @@ export default function PerformanceReport({
                         </span>
                         <div className="flex gap-1.5 text-[10px] text-slate-400">
                           {sessKnown > 0 && <span className="font-semibold text-emerald-600">{sessKnown} Known</span>}
-                          {sessNeedsWork > 0 && <span className="font-semibold text-amber-600">{sessNeedsWork} Work</span>}
-                          {sessNotKnown > 0 && <span className="font-semibold text-rose-600">{sessNotKnown} New</span>}
+                          {sessNeedsWork > 0 && <span className="font-semibold text-amber-600">{sessNeedsWork} Needs Work</span>}
+                          {sessNotKnown > 0 && <span className="font-semibold text-rose-600">{sessNotKnown} Not Known</span>}
                         </div>
                       </div>
                     </div>
@@ -331,7 +331,7 @@ export default function PerformanceReport({
                           return (
                             <span key={cId} className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-xl font-bold ${badgeBg}`}>
                               <span className="font-display text-slate-900 font-extrabold mr-0.5">{cId}</span>
-                              <span className="font-mono text-[9px] uppercase font-normal">{res === 'Needs Work' ? 'Work' : res === 'Not Known' ? 'New' : res === 'Known' ? 'Known' : 'Removed'}</span>
+                              <span className="font-mono text-[9px] uppercase font-normal">{res === 'Needs Work' ? 'Needs Work' : res === 'Not Known' ? 'Not Known' : res === 'Known' ? 'Known' : 'Removed'}</span>
                             </span>
                           );
                         })}

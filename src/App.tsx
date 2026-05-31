@@ -436,7 +436,11 @@ export default function App() {
                     disabled={selectedCardIds.size === 0}
                     onClick={() => setIsPlaying(true)}
                     id="btn-start-session"
-                    className="px-6 py-2 bg-[#E2E8F0] hover:bg-[#CBD5E1] disabled:bg-[#E2E8F0]/80 text-[#334155] disabled:text-[#94A3B8] font-bold rounded-md transition cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm shadow-xs border border-transparent"
+                    className={`px-6 py-2.5 font-bold rounded-md transition-all duration-200 text-xs sm:text-sm shadow-xs cursor-pointer select-none
+                      ${selectedCardIds.size > 0 
+                        ? 'bg-[#1E3A8A] hover:bg-[#172554] text-white shadow-md active:scale-95 transform hover:scale-[1.02]' 
+                        : 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed border border-transparent opacity-80'
+                      }`}
                   >
                     Start Session
                   </button>

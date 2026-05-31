@@ -13,6 +13,60 @@ interface LessonSelectorProps {
   onRestoreRemoved: () => void;
 }
 
+function getLessonStyles(lessonNum: number) {
+  const styles = [
+    {
+      border: 'border-indigo-100 hover:border-indigo-300',
+      bg: 'bg-indigo-50/20 hover:bg-indigo-50/40',
+      accent: 'border-l-4 border-l-indigo-600',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+    {
+      border: 'border-emerald-100 hover:border-emerald-300',
+      bg: 'bg-emerald-50/20 hover:bg-emerald-50/40',
+      accent: 'border-l-4 border-l-emerald-600',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+    {
+      border: 'border-amber-100 hover:border-amber-300',
+      bg: 'bg-amber-50/20 hover:bg-amber-50/40',
+      accent: 'border-l-4 border-l-amber-500',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+    {
+      border: 'border-rose-100 hover:border-rose-300',
+      bg: 'bg-rose-50/20 hover:bg-rose-50/40',
+      accent: 'border-l-4 border-l-rose-600',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+    {
+      border: 'border-sky-100 hover:border-sky-300',
+      bg: 'bg-sky-50/10 hover:bg-sky-50/30',
+      accent: 'border-l-4 border-l-sky-500',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+    {
+      border: 'border-violet-100 hover:border-violet-300',
+      bg: 'bg-violet-50/10 hover:bg-violet-50/30',
+      accent: 'border-l-4 border-l-violet-600',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+    {
+      border: 'border-orange-100 hover:border-orange-300',
+      bg: 'bg-orange-50/15 hover:bg-orange-50/30',
+      accent: 'border-l-4 border-l-orange-500',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+    {
+      border: 'border-teal-100 hover:border-teal-300',
+      bg: 'bg-teal-50/10 hover:bg-teal-50/35',
+      accent: 'border-l-4 border-l-teal-600',
+      shadow: 'shadow-xs hover:shadow-sm',
+    },
+  ];
+  return styles[(lessonNum - 1) % styles.length];
+}
+
 export default function LessonSelector({
   selectedIds,
   setSelectedIds,
@@ -99,11 +153,13 @@ export default function LessonSelector({
               const allSelected = cards.every((c) => selectedIds.has(c.id));
               const someSelected = cards.some((c) => selectedIds.has(c.id));
 
+              const styles = getLessonStyles(lessonNum);
+
               return (
                 <div
                   key={lessonNum}
                   id={`lesson-card-${lessonNum}`}
-                  className="bg-white border border-slate-100 rounded-2xl p-5 hover:border-slate-300 transition-all flex flex-col justify-between hover:shadow-xs"
+                  className={`bg-white border ${styles.border} ${styles.accent} ${styles.bg} rounded-2xl p-5 transition-all flex flex-col justify-between ${styles.shadow} max-w-[480px] w-full`}
                 >
                   <div>
                     <div className="flex justify-between items-center mb-4">
@@ -133,7 +189,7 @@ export default function LessonSelector({
                     <div className="flex flex-wrap gap-2">
                       {cards.map((card) => {
                         const isSelected = selectedIds.has(card.id);
-                        const status = cardStatuses[card.id] || 'Needs Work';
+                        const status = cardStatuses[card.id] || 'Not Known';
                         
                         // Status colored indicator
                         let statusColor = 'bg-slate-100 text-slate-500';
@@ -163,8 +219,8 @@ export default function LessonSelector({
                             />
                             <span className="font-display font-bold">{card.id}</span>
                             {!isSelected && (
-                              <span className="text-[10px] text-slate-400 font-mono font-normal">
-                                {status === 'Needs Work' ? 'Work' : status === 'Not Known' ? 'New' : 'Known'}
+                              <span className="text-[10px] text-slate-400 font-mono font-normal flex items-center justify-center">
+                                {status === 'Needs Work' ? 'Needs Work' : status === 'Not Known' ? 'Not Known' : 'Known'}
                               </span>
                             )}
                           </div>
